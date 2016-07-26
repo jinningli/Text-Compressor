@@ -171,16 +171,13 @@ void output()
 			}
 			if (!code.length())
 				return;
-			while (code.length() < 8)
-			{
-				code += '0';
-			}
 			k = 0;
-			for (int j = 0; j <= 7; j++)
+			for (int j = 0; j <= code.length()-1; j++)
 			{
 				k = k * 2 + code[j] - '0';
 			}
 			printf("%c", k);
+			printf("%c", code.length());
 			return;
 		}
 	}
@@ -208,7 +205,7 @@ void decode()
 	bool ending = false;
 	while (1)
 	{
-		while (bis.length() <= maxlen)
+		while (bis.length() <= maxlen + 16)
 		{
 			unsigned char tmp = '\0';
 			if (scanf("%c", &tmp) == EOF)
@@ -218,18 +215,31 @@ void decode()
 			}
 			bis += bistring(tmp);
 		}
-		//if (ending)
-		//{
-		//	while(1)
-		//	printf("%c", chips.findchar(bis, cut));
-		//}
+		if (ending)
+		{
+			int cnt = 0;
+			for (int k = bis.length() - 8; k <=  bis.length() - 1; k++)
+			{
+				cnt = cnt * 2 + bis[k] - '0';
+			}
+			for (int k = bis.length() - 9; k >= bis.length() - 8 - cnt; k--)
+			{
+				bis[k - 8 + cnt] = bis[k];
+			}
+			bis = bis.substr(0, bis.length() - 16 + cnt);
+			while (bis.length())
+			{
+				printf("%c", chips.findchar(bis, cut));
+				bis = bis.substr(cut);
+			}
+		}
 		printf("%c", chips.findchar(bis, cut));
 		bis = bis.substr(cut);
 	}
 }
 int main()
 {
-	freopen("Uncle_Toms_Cabin.txt", "r", stdin);
+	freopen("SOPHIEs_WORLD.txt", "r", stdin);
 	while (scanf("%c", &inidata[++datasize]) != EOF)
 	{
 		if (inidata[datasize] < 0)
@@ -244,15 +254,15 @@ int main()
 	LIB_INITIALIZE();
 	//freopen("lib.txt", "w", stdout);
 	//chips.show();
-	//freopen("Uncle_Toms_Cabin.out", "w", stdout);
+	//freopen("SOPHIEs_WORLD.out", "w", stdout);
 	//freopen("outbit.txt", "w", stdout);
 
 	//output();
 
 
 	//fclose(stdin);
-	freopen("Uncle_Toms_Cabindecode.out", "w", stdout);
-	freopen("Uncle_Toms_Cabin.out", "rb", stdin);
+	freopen("SOPHIEs_WORLDdecode.out", "w", stdout);
+	freopen("SOPHIEs_WORLD.out", "rb", stdin);
 	decode();
 	return 0;
 }
