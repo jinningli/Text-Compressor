@@ -9,6 +9,7 @@
 #include <queue>
 #include <map>
 #include <fstream>
+#include <vector>
 using namespace std;
 #define infinite 0x7fffffff
 
@@ -109,6 +110,8 @@ public:
 		int now = root;
 		while (now > nodesize)
 		{
+			if (cut == str.length())
+				exit(0);
 			if (str[cut++] == '0')
 			{
 				now = node[now].left;
@@ -152,9 +155,34 @@ void output()
 		{
 			k = k * 2 + code[j] - '0';
 		}
-		//printf("[%d]\n", k);
 		printf("%c", k);
 		code = code.substr(8);
+		if (i == datasize)
+		{
+			while (code.length() > 8)
+			{
+				k = 0;
+				for (int j = 0; j <= 7; j++)
+				{
+					k = k * 2 + code[j] - '0';
+				}
+				printf("%c", k);
+				code = code.substr(8);
+			}
+			if (!code.length())
+				return;
+			while (code.length() < 8)
+			{
+				code += '0';
+			}
+			k = 0;
+			for (int j = 0; j <= 7; j++)
+			{
+				k = k * 2 + code[j] - '0';
+			}
+			printf("%c", k);
+			return;
+		}
 	}
 }
 
@@ -177,15 +205,24 @@ void decode()
 {
 	string bis;
 	int cut = 0;
+	bool ending = false;
 	while (1)
 	{
 		while (bis.length() <= maxlen)
 		{
 			unsigned char tmp = '\0';
 			if (scanf("%c", &tmp) == EOF)
-				return;
+			{
+				ending = true;
+				break;
+			}
 			bis += bistring(tmp);
 		}
+		//if (ending)
+		//{
+		//	while(1)
+		//	printf("%c", chips.findchar(bis, cut));
+		//}
 		printf("%c", chips.findchar(bis, cut));
 		bis = bis.substr(cut);
 	}
@@ -213,7 +250,7 @@ int main()
 	//output();
 
 
-	fclose(stdin);
+	//fclose(stdin);
 	freopen("Uncle_Toms_Cabindecode.out", "w", stdout);
 	freopen("Uncle_Toms_Cabin.out", "rb", stdin);
 	decode();
