@@ -141,6 +141,15 @@ void LIB_INITIALIZE()
 
 void output()
 {
+	printf("%d %d %d ", chips.root, chips.nodesize, maxlen);
+	for (int i = 1; i <= chips.nodesize; i++)
+	{
+		printf("%c", node[i].data);
+	}
+	for (int i = chips.nodesize + 1; i <= chips.root; i++)
+	{
+		printf("%d %d ", node[i].left, node[i].right);
+	}
 	string code;
 	for (int i = 1; i <= datasize; i++)
 	{
@@ -172,7 +181,7 @@ void output()
 			if (!code.length())
 				return;
 			k = 0;
-			for (int j = 0; j <= code.length()-1; j++)
+			for (int j = 0; j <= code.length() - 1; j++)
 			{
 				k = k * 2 + code[j] - '0';
 			}
@@ -200,6 +209,15 @@ string bistring(unsigned char ch)
 
 void decode()
 {
+	scanf("%d %d %d ", &chips.root, &chips.nodesize, &maxlen);
+	for (int i = 1; i <= chips.nodesize; i++)
+	{
+		scanf("%c",&node[i].data);
+	}
+	for (int i = chips.nodesize + 1; i <= chips.root; i++)
+	{
+		scanf("%d %d ", &node[i].left, &node[i].right);
+	}
 	string bis;
 	int cut = 0;
 	bool ending = false;
@@ -218,11 +236,11 @@ void decode()
 		if (ending)
 		{
 			int cnt = 0;
-			for (int k = bis.length() - 8; k <=  bis.length() - 1; k++)
+			for (int k = bis.length() - 8; k <= bis.length() - 1; k++)
 			{
 				cnt = cnt * 2 + bis[k] - '0';
 			}
-			for (int k = bis.length() - 9; k >= bis.length() - 8 - cnt; k--)
+			for (int k =  bis.length() - 8 - cnt; k <= bis.length() - 9; k++)
 			{
 				bis[k - 8 + cnt] = bis[k];
 			}
@@ -237,9 +255,12 @@ void decode()
 		bis = bis.substr(cut);
 	}
 }
-int main()
+
+
+void compress(char infile[], char outfile[])
 {
-	freopen("SOPHIEs_WORLD.txt", "r", stdin);
+	freopen(infile, "r", stdin);
+	freopen(outfile, "wb", stdout);
 	while (scanf("%c", &inidata[++datasize]) != EOF)
 	{
 		if (inidata[datasize] < 0)
@@ -252,17 +273,35 @@ int main()
 	datasize--;
 	chips.build();
 	LIB_INITIALIZE();
-	//freopen("lib.txt", "w", stdout);
-	//chips.show();
-	//freopen("SOPHIEs_WORLD.out", "w", stdout);
-	//freopen("outbit.txt", "w", stdout);
-
-	//output();
+	output();
+}
 
 
-	//fclose(stdin);
-	freopen("SOPHIEs_WORLDdecode.out", "w", stdout);
-	freopen("SOPHIEs_WORLD.out", "rb", stdin);
+void decompress(char infile[], char outfile[])
+{
+	freopen(infile, "rb", stdin);
+	freopen(outfile, "w", stdout);
 	decode();
-	return 0;
+}
+
+int main(int argc, char* argv[])
+{
+	if (argc != 4)
+	{
+		printf("---------------------------------------\nCompress: -c [filename1] [filename2]\n\nDecompress: -d [filename1] [filename2]\n---------------------------------------");
+		return 0;
+	}
+	if (argv[1][1] == 'c'|| argv[1][1] == 'C')
+	{
+		compress(argv[2], argv[3]);
+	}
+	else if (argv[1][1] == 'd' || argv[1][1] == 'D')
+	{
+		decompress(argv[2], argv[3]);
+	}
+	else
+	{
+		printf("---------------------------------------\nCompress: -c [filename1] [filename2]\n\nDecompress: -d [filename1] [filename2]\n---------------------------------------");
+	}
+	return	0;
 }
