@@ -12,6 +12,21 @@
 #include <vector>
 using namespace std;
 #define infinite 0x7fffffff
+#define wordsize 35
+#define wordlength 4
+int frequenceplus = 14;
+//22
+string worddic[] =
+{
+	"",
+	"the", "of", "to", "and", "that",
+	"in", "was", "is", "it", "you",
+	"had", "he", "we", "she", "on",
+	"as", "not", "her", "be", "have",
+	"for", "But", "The", "with", "are",
+	"from", "all", "It", "or", "can",
+	"at", "were", "what", "his", "this"
+};
 
 char inidata[5000000];
 int datasize = 0;
@@ -25,8 +40,14 @@ struct st_node
 	int parent;
 	int left;
 	int right;
-	st_node() :data('\0'), frequence(0), parent(0), left(0), right(0), num(0) {}
+	string word;
+	st_node() :data('\0'), frequence(0), parent(0), left(0), right(0), num(0), word("") {}
 }node[5000];
+
+bool nodecmp(st_node a, st_node b)
+{
+	return a.frequence > b.frequence;
+}
 
 class hftree
 {
@@ -72,6 +93,14 @@ public:
 	}
 	void build()
 	{
+		sort(node + 1, node + nodesize + 1, nodecmp);
+		while( frequenceplus >= nodesize - 1)  frequenceplus -= 10;
+		for (int i = nodesize + 1; i <= nodesize + wordsize; i++)
+		{
+			node[i].word = worddic[i - nodesize];
+			node[i].frequence = node[i - nodesize + frequenceplus].frequence;
+		}
+		nodesize += wordsize;
 		priority_queue<int, vector<int>, cmp> chipspq;
 		for (int i = 1; i <= nodesize; i++)
 		{
@@ -104,7 +133,7 @@ public:
 			cout << node[i].code << endl;
 		}
 	}
-	char findchar(string & str, int & cut)
+	char findchar(string & str, int & cut, string & strout)
 	{
 		cut = 0;
 		int now = root;
@@ -121,28 +150,55 @@ public:
 				now = node[now].right;
 			}
 		}
+		if (now >= nodesize - wordsize + 1 && now <= nodesize)
+			strout = node[now].word;
 		return node[now].data;
 	}
 }chips;
 
 
 map<char, string> outlib;
+map<string, string> wordlib;
 int maxlen = 0;
 
 void LIB_INITIALIZE()
 {
-	for (int i = 1; i <= chips.nodesize; i++)
+	for (int i = 1; i <= chips.nodesize - wordsize; i++)
 	{
 		outlib[node[i].data] = node[i].code;
 		if (node[i].code.length() > maxlen)
 			maxlen = node[i].code.length();
 	}
+	for (int i = chips.nodesize - wordsize + 1; i <= chips.nodesize; i++)
+	{
+		wordlib[node[i].word] = node[i].code;
+		if (node[i].code.length() > maxlen)
+			maxlen = node[i].code.length();
+	}
 }
+
+string codeplus(int &i)
+{
+//	if (i >= datasize - wordlength) return outlib[inidata[i]];
+	string capa;
+	for (int j = 0; j < wordlength; j++)
+	{
+		if ( i + j > datasize) break;
+		capa += inidata[i + j];
+		if (wordlib.count(capa))
+		{
+			i += j;
+			return wordlib[capa];
+		}
+	}
+	return outlib[inidata[i]];
+}
+
 
 void output()
 {
 	printf("%d %d %d ", chips.root, chips.nodesize, maxlen);
-	for (int i = 1; i <= chips.nodesize; i++)
+	for (int i = 1; i <= chips.nodesize - wordsize; i++)
 	{
 		printf("%c", node[i].data);
 	}
@@ -153,19 +209,13 @@ void output()
 	string code;
 	for (int i = 1; i <= datasize; i++)
 	{
-		code += outlib[inidata[i]];
-		while (code.length() <= 8 && i <= datasize)
+		code += codeplus(i);
+		while (code.length() <= 8 && i < datasize)
 		{
 			i++;
-			code += outlib[inidata[i]];
+			code += codeplus(i);
 		}
 		unsigned char k = 0;
-		for (int j = 0; j <= 7; j++)
-		{
-			k = k * 2 + code[j] - '0';
-		}
-		printf("%c", k);
-		code = code.substr(8);
 		if (i == datasize)
 		{
 			while (code.length() > 8)
@@ -189,6 +239,13 @@ void output()
 			printf("%c", code.length());
 			return;
 		}
+		k = 0;
+		for (int j = 0; j <= 7; j++)
+		{
+			k = k * 2 + code[j] - '0';
+		}
+		printf("%c", k);
+		code = code.substr(8);
 	}
 }
 
@@ -209,8 +266,9 @@ string bistring(unsigned char ch)
 
 void decode()
 {
-	scanf("%d %d %d ", &chips.root, &chips.nodesize, &maxlen);
-	for (int i = 1; i <= chips.nodesize; i++)
+	scanf("%d %d %d", &chips.root, &chips.nodesize, &maxlen);
+	getchar();
+	for (int i = 1; i <= chips.nodesize - wordsize; i++)
 	{
 		scanf("%c",&node[i].data);
 	}
@@ -218,7 +276,13 @@ void decode()
 	{
 		scanf("%d %d ", &node[i].left, &node[i].right);
 	}
+	for (int i = chips.nodesize - wordsize + 1; i <= chips.nodesize; i++)
+	{
+		node[i].word = worddic[i - chips.nodesize + wordsize];
+		node[i].frequence = node[i - chips.nodesize + wordsize + frequenceplus].frequence;
+	}
 	string bis;
+	string found;
 	int cut = 0;
 	bool ending = false;
 	while (1)
@@ -247,11 +311,29 @@ void decode()
 			bis = bis.substr(0, bis.length() - 16 + cnt);
 			while (bis.length())
 			{
-				printf("%c", chips.findchar(bis, cut));
-				bis = bis.substr(cut);
+				found = "";
+				unsigned char find = chips.findchar(bis, cut, found);
+				if (found != "")
+				{
+					cout << found;
+				}
+				else
+				{
+					printf("%c", find);
+				}
+				bis	= bis.substr(cut);
 			}
 		}
-		printf("%c", chips.findchar(bis, cut));
+		found = "";
+		unsigned char find = chips.findchar(bis, cut, found);
+		if (found != "")
+		{
+			cout << found;
+		}
+		else
+		{
+			printf("%c", find);
+		}
 		bis = bis.substr(cut);
 	}
 }
@@ -273,6 +355,7 @@ void compress(char infile[], char outfile[])
 	datasize--;
 	chips.build();
 	LIB_INITIALIZE();
+	//chips.show();
 	output();
 }
 
@@ -286,6 +369,8 @@ void decompress(char infile[], char outfile[])
 
 int main(int argc, char* argv[])
 {
+	//freopen("dic.txt", "w", stdout);
+	/*
 	if (argc != 4)
 	{
 		printf("---------------------------------------\nCompress: -c [filename1] [filename2]\n\nDecompress: -d [filename1] [filename2]\n---------------------------------------");
@@ -302,6 +387,8 @@ int main(int argc, char* argv[])
 	else
 	{
 		printf("---------------------------------------\nCompress: -c [filename1] [filename2]\n\nDecompress: -d [filename1] [filename2]\n---------------------------------------");
-	}
+	}*/
+	compress("Uncle_Toms_Cabin.txt", "[Compressed]Uncle_Toms_Cabin.out");
+	decompress("[Compressed]Uncle_Toms_Cabin.out", "[Decoded]Uncle_Toms_Cabin.txt");
 	return	0;
 }
